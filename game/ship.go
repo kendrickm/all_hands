@@ -12,6 +12,12 @@ type Ship struct {
 	Rooms []*Room
 }
 
+func (ship *Ship) Update() {
+	for _, room := range ship.Rooms {
+		room.Update()
+	}
+}
+
 func loadChapter0(player *Player) []*Ship {
 	// TODO refactor the depreacted function
 	// TODO abstract loading that will span chapters
@@ -52,6 +58,7 @@ func loadChapter0(player *Player) []*Ship {
 		room.Player = player
 
 		room.Map = make([][]Tile, len(roomLines))
+		room.Terminals = make(map[Pos]*Terminal, 1)
 
 		for i := range room.Map {
 			room.Map[i] = make([]Tile, longestRow)
@@ -70,6 +77,11 @@ func loadChapter0(player *Player) []*Ship {
 					t.Rune = Bulkhead
 				case '.':
 					t.Rune = ShipFloor
+				case 'T': 
+					 t.Rune = TerminalAccess
+					 room.Terminals[Pos{x,y}] = createReactorTerminal()
+			    case 'r':
+			    	 t.Rune = UnpoweredReactor
 				case '@':
 					room.Player.X = x
 					room.Player.Y = y
@@ -93,6 +105,10 @@ func loadChapter0(player *Player) []*Ship {
 	}
 	ship := &Ship{rooms}
 	ships = append(ships, ship)
+
+
+	
+	
 	return ships
 }
 

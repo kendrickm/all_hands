@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/kendrickm/all_hands/game"
 	"github.com/kendrickm/all_hands/ui"
+	"fmt"
 )
 
 func main() {
@@ -13,7 +14,8 @@ func main() {
 		game.Run()
 
 	}()
-	ui := ui.NewUI(game.InputChan, game.RoomChans[0])
+	fmt.Println(&game.ActiveTerminal)
+	ui := ui.NewUI(game.InputChan, game.CurrentRoom, game.GameStateChan)
 	ui.Run()
 
 }

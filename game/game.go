@@ -1,3 +1,9 @@
+//TODO 
+//Event management
+//Ship status
+//** Reactor status
+//** Aux Power Banks
+
 package game
 
 import (
@@ -5,26 +11,27 @@ import (
 )
 
 type Game struct {
-	RoomChans   []chan *Room
+	//Is there a better way to handle different game states communicating between game and ui threads?
+	GameStateChan chan bool //True when a terminal is active
 	InputChan   chan *Input
 	Ships       []*Ship
 	CurrentShip *Ship
 	CurrentRoom *Room
 	Chapter     int32 //Index of ship
+	ActiveTerminal *Terminal
 }
 
 func NewGame() *Game {
 	//TODO Create channels for event management
 
-	roomChans := make([]chan *Room, 1)
-	for i := range roomChans {
-		roomChans[i] = make(chan *Room)
-	}
-
 	inputChan := make(chan *Input)
+	stateChan := make(chan bool)
 	ships := loadChapter0(newPlayer())
-
-	game := &Game{roomChans, inputChan, ships, ships[0], ships[0].Rooms[0], 0}
+	var ct *Terminal
+	game := &Game{stateChan, inputChan, ships, ships[0], ships[0].Rooms[0], 0, ct}
+	if ct == nil {
+		fmt.Println("Starting with nil")
+	}
 	return game
 
 }
@@ -37,6 +44,7 @@ const (
 	Down
 	Left
 	Right
+	TerminalInteract
 	QuitGame
 	CloseWindow
 )
@@ -56,8 +64,35 @@ func checkDoor(room *Room, pos Pos) {
 	}
 }
 
+func checkTerminal(room *Room, playerPos Pos) *Terminal { //Since we aren't changing facing direction, check each direction currently
+	nPos := Pos{playerPos.X,playerPos.Y-1}
+	sPos := Pos{playerPos.X,playerPos.Y+1}
+	ePos := Pos{playerPos.X+1,playerPos.Y}
+	wPos := Pos{playerPos.X-1,playerPos.Y}
+	var terminal *Terminal
+	fmt.Println(room.Terminals)
+
+	if room.Map[nPos.Y][nPos.X].Rune == TerminalAccess {
+		terminal = room.Terminals[nPos]
+		fmt.Println("Found Terminal north")
+		fmt.Println(nPos)
+	} else if room.Map[sPos.Y][sPos.X].Rune == TerminalAccess {
+		terminal = room.Terminals[sPos]
+		fmt.Println("Found Terminal south")
+	} else if room.Map[ePos.Y][ePos.X].Rune == TerminalAccess {
+		terminal = room.Terminals[ePos]
+		fmt.Println("Found Terminal east")
+	} else if room.Map[wPos.Y][wPos.X].Rune == TerminalAccess {
+		terminal = room.Terminals[wPos]
+		fmt.Println("Found Terminal west")
+	}
+
+	return terminal
+}
+
 func (game *Game) Move(to Pos) {
 	game.CurrentRoom.Player.Pos = to
+	fmt.Println("Moving")
 }
 
 func (game *Game) resolveMovement(pos Pos) {
@@ -68,13 +103,14 @@ func (game *Game) resolveMovement(pos Pos) {
 		checkDoor(room, pos)
 	}
 
+
 }
 
 func canWalk(room *Room, pos Pos) bool {
 	if inRange(room, pos) {
 		t := room.Map[pos.Y][pos.X]
 		switch t.Rune {
-		case Bulkhead, Blank:
+		case TerminalAccess,PoweredReactor,UnpoweredReactor,Bulkhead, Blank:
 			return false
 		}
 		return true
@@ -87,6 +123,7 @@ func inRange(room *Room, pos Pos) bool {
 }
 
 func (game *Game) handleInput(input *Input) {
+	// fmt.Println(&game.ActiveTerminal)
 	room := game.CurrentRoom
 	p := room.Player
 	switch input.Typ {
@@ -104,7 +141,17 @@ func (game *Game) handleInput(input *Input) {
 		game.resolveMovement(newPos)
 	case CloseWindow:
 		//Handle closing terminals here
-
+	case TerminalInteract:
+		if game.ActiveTerminal == nil {
+			t := checkTerminal(room, p.Pos)
+			if t != nil{
+				game.ActiveTerminal = t
+				fmt.Println("Setting active terminal")
+			}
+		} else {
+			game.ActiveTerminal = nil
+			fmt.Println("Unsetting terminal")
+		}
 	}
 }
 
@@ -132,18 +179,19 @@ func getNeighbors(room *Room, pos Pos) []Pos {
 }
 
 func (game *Game) Run() {
-	for _, r := range game.RoomChans {
-		r <- game.CurrentRoom
-	}
+	// for _, r := range game.RoomChans {
+	// 	r <- game.CurrentRoom
+	// }
 
 	for input := range game.InputChan {
 		if input.Typ == QuitGame {
 			fmt.Println("Quitting")
 			return
 		}
-
 		game.handleInput(input)
-
+		game.GameStateChan <- (game.ActiveTerminal != nil)
 	}
+
+	
 
 }

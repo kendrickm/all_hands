@@ -1,12 +1,11 @@
 package game
 
 type Room struct {
-	Rooms  []*Room
 	Map    [][]Tile
 	Player *Player
 	Debug  map[Pos]bool
 	Ship   *Ship
-	// Terminals map[game.Pos]*Terminal
+	Terminals map[Pos]*Terminal
 	//Portals
 }
 
@@ -19,8 +18,15 @@ type Tile struct {
 const (
 	Bulkhead   rune = '#'
 	ShipFloor  rune = '.'
-	ClosedDoor rune = '|'
-	OpenDoor   rune = '/'
+	ClosedDoor       rune = '|'
+	OpenDoor         rune = '/'
+	TerminalAccess   rune = 'T'
+	UnpoweredReactor rune = 'r'
+	PoweredReactor   rune = 'R'
 	Blank      rune = 0
 	Pending    rune = -1
 )
+
+func (room *Room) Update() {
+
+}

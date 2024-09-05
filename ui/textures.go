@@ -6,6 +6,7 @@ import (
 	"github.com/veandco/go-sdl2/img"
 	"os"
 	"log"
+	"unsafe"
 	"strconv"
 	"strings"
 	"bufio"
@@ -18,6 +19,26 @@ const (
 	FontMedium
 	FontLarge
 )
+
+
+func (ui *ui) GetSinglePixelTex(color sdl.Color) *sdl.Texture {
+	tex, err := ui.renderer.CreateTexture(sdl.PIXELFORMAT_ABGR8888, sdl.TEXTUREACCESS_STATIC, 1, 1)
+	if err != nil {
+		panic(err)
+	}
+	pixels := make([]byte, 4)
+	pixels[0] = color.R
+	pixels[1] = color.G
+	pixels[2] = color.B
+	pixels[3] = color.A
+
+	tex.Update(nil, unsafe.Pointer(&pixels[0]), 4)
+	err = tex.SetBlendMode(sdl.BLENDMODE_BLEND)
+	if err != nil {
+		panic(err)
+	}
+	return tex
+}
 
 func (ui *ui) stringToTexture(s string, size FontSize, color sdl.Color) *sdl.Texture {
 

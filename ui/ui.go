@@ -1,8 +1,11 @@
+//TODO
+//Create Terminal UI
+//Asset index validation
+
 package ui
 
 import (
 	"fmt"
-	"unsafe"
 	"math/rand"
 	"github.com/veandco/go-sdl2/ttf"
 	"github.com/veandco/go-sdl2/sdl"
@@ -10,7 +13,6 @@ import (
 	"github.com/kendrickm/all_hands/game"
 )
 
-func f(p unsafe.Pointer) {}
 
 func init() {
 	fmt.Println("Init innit")
@@ -55,8 +57,10 @@ type ui struct {
 	centerX          int
 	centerY          int
 
-	roomChan chan *game.Room
+	// roomChan chan *game.Room
+	currentRoom *game.Room
 	inputChan chan *game.Input
+	gameStateChan chan bool
 
 	fontMedium *ttf.Font
 	fontLarge  *ttf.Font
@@ -66,15 +70,20 @@ type ui struct {
 	string2TexMed   map[string]*sdl.Texture
 	string2TexLarge map[string]*sdl.Texture
 
+	terminalBackground  *sdl.Texture
+	terminalForeground  *sdl.Texture
+	buttonTexture 		*sdl.Texture
+
 	currentMouseState *mouseState
 	prevMouseState *mouseState
 }
 
-func NewUI(inputChan chan *game.Input, roomChan chan *game.Room) *ui {
+func NewUI(inputChan chan *game.Input, currentRoom *game.Room, gameStateChan chan bool) *ui {
 	ui := &ui{}
 	ui.state = UIMain
 	ui.inputChan = inputChan
-	ui.roomChan = roomChan
+	ui.gameStateChan = gameStateChan
+	ui.currentRoom = currentRoom
 	ui.string2TexSmall = make(map[string]*sdl.Texture)
 	ui.string2TexMed = make(map[string]*sdl.Texture)
 	ui.string2TexLarge = make(map[string]*sdl.Texture)
@@ -106,6 +115,13 @@ func NewUI(inputChan chan *game.Input, roomChan chan *game.Room) *ui {
 	ui.centerX = -1
 	ui.centerY = -1
 
+	ui.terminalBackground = ui.GetSinglePixelTex(sdl.Color{255, 0, 0, 128})
+	ui.terminalBackground.SetBlendMode(sdl.BLENDMODE_BLEND)
+	ui.terminalForeground = ui.GetSinglePixelTex(sdl.Color{0, 0, 0, 255})
+	ui.terminalForeground.SetBlendMode(sdl.BLENDMODE_BLEND)
+	ui.buttonTexture = ui.GetSinglePixelTex(sdl.Color{0, 255, 0, 255})
+	ui.buttonTexture.SetBlendMode(sdl.BLENDMODE_BLEND)
+
 	ui.fontSmall, err = ttf.OpenFont("ui/assets/gothic.ttf", int(float64(ui.winWidth)*.015))
 	if err != nil {
 		panic(err)
@@ -132,9 +148,10 @@ func NewUI(inputChan chan *game.Input, roomChan chan *game.Room) *ui {
 func (ui *ui) Run() {
 
 	ui.prevMouseState = getMouseState()
-	var newRoom  *game.Room
+	// var newRoom  *game.Room
 
 	for {
+
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 
 			switch e := event.(type) {
@@ -150,16 +167,28 @@ func (ui *ui) Run() {
 		}
 
 		ui.currentMouseState = getMouseState()
-		var ok bool
+		var ok, stateChange bool
 		select {
-		case newRoom, ok = <-ui.roomChan:
+		case stateChange, ok = <-ui.gameStateChan:
 			if ok {
-				ui.Draw(newRoom)
+				fmt.Println("stateChange")
+				if stateChange {
+					ui.state = UITerminal
+				} else {
+					ui.state = UIMain
+				}
 			}
-		default:
+			ui.DrawRoom(ui.currentRoom)
+			default:
 		}
 
-		ui.Draw(newRoom)
+		switch ui.state {
+		case UIMain:
+			ui.DrawRoom(ui.currentRoom)
+		case UITerminal:
+			ui.DrawTerminal()
+		}
+		
 		var input game.Input
 
 		ui.renderer.Present()
@@ -174,7 +203,9 @@ func (ui *ui) Run() {
 				input.Typ = game.Right
 			} else if ui.keyDownOnce(sdl.SCANCODE_LEFT) {
 				input.Typ = game.Left
-			} 
+			} else if ui.keyDownOnce(sdl.SCANCODE_T) {
+				input.Typ = game.TerminalInteract
+			}
 		}
 
 			for i, v := range ui.keyboardState {
@@ -183,13 +214,21 @@ func (ui *ui) Run() {
 
 			if input.Typ != game.None {
 				ui.inputChan <- &input
+				
 			}
+
+			
 		}
+
 		ui.prevMouseState = ui.currentMouseState
 		sdl.Delay(10)
 }
 
-func (ui *ui) Draw(room *game.Room) {
+func (ui *ui) DrawTerminal() {
+	fmt.Println("Drawing terminal")
+}
+
+func (ui *ui) DrawRoom(room *game.Room) {
 
 	if ui.centerX == -1 && ui.centerY == -1 {
 		ui.centerX = room.Player.X
