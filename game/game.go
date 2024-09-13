@@ -12,7 +12,7 @@ import (
 
 type Game struct {
 	//Is there a better way to handle different game states communicating between game and ui threads?
-	GameStateChan chan bool //True when a terminal is active
+	GameStateChan chan *StateChange //True when a terminal is active
 	InputChan   chan *Input
 	Ships       []*Ship
 	CurrentShip *Ship
@@ -25,7 +25,7 @@ func NewGame() *Game {
 	//TODO Create channels for event management
 
 	inputChan := make(chan *Input)
-	stateChan := make(chan bool)
+	stateChan := make(chan *StateChange)
 	ships := loadChapter0(newPlayer())
 	var ct *Terminal
 	game := &Game{stateChan, inputChan, ships, ships[0], ships[0].Rooms[0], 0, ct}
@@ -34,6 +34,11 @@ func NewGame() *Game {
 	}
 	return game
 
+}
+
+type StateChange struct {
+	TerminalActive bool
+	Terminal *Terminal
 }
 
 type InputType int
@@ -123,7 +128,6 @@ func inRange(room *Room, pos Pos) bool {
 }
 
 func (game *Game) handleInput(input *Input) {
-	// fmt.Println(&game.ActiveTerminal)
 	room := game.CurrentRoom
 	p := room.Player
 	switch input.Typ {
@@ -189,7 +193,13 @@ func (game *Game) Run() {
 			return
 		}
 		game.handleInput(input)
-		game.GameStateChan <- (game.ActiveTerminal != nil)
+		state := &StateChange{}
+		if game.ActiveTerminal != nil {
+			state.TerminalActive = true
+			state.Terminal = game.ActiveTerminal
+		}
+		game.GameStateChan <- state
+		game.CurrentRoom.Update()
 	}
 
 	

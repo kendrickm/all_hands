@@ -6,6 +6,7 @@ import (
 		"fmt"
 		"os"
 		"bufio"
+		"strconv"
 )
 
 type Ship struct {
@@ -46,12 +47,18 @@ func loadChapter0(player *Player) []*Ship {
 		longestRow := 0
 		index := 0
 		for scanner.Scan() {
-			roomLines = append(roomLines, scanner.Text())
-			if len(roomLines[index]) > longestRow {
-				longestRow = len(roomLines[index])
+			text := scanner.Text()
+			if text == "-------" {
+				break
+			} else {
+				roomLines = append(roomLines, text)
+				if len(roomLines[index]) > longestRow {
+					longestRow = len(roomLines[index])
+				}
+				index++
 			}
-			index++
 		}
+
 
 		room := &Room{}
 		room.Debug = make(map[Pos]bool)
@@ -59,6 +66,7 @@ func loadChapter0(player *Player) []*Ship {
 
 		room.Map = make([][]Tile, len(roomLines))
 		room.Terminals = make(map[Pos]*Terminal, 1)
+		room.Stations = make(map[Pos]*Station, 1)
 
 		for i := range room.Map {
 			room.Map[i] = make([]Tile, longestRow)
@@ -82,6 +90,7 @@ func loadChapter0(player *Player) []*Ship {
 					 room.Terminals[Pos{x,y}] = createReactorTerminal()
 			    case 'r':
 			    	 t.Rune = UnpoweredReactor
+			    	 // room.Stations[Pos{x,y}] = createReactorStation()
 				case '@':
 					room.Player.X = x
 					room.Player.Y = y
@@ -90,6 +99,55 @@ func loadChapter0(player *Player) []*Ship {
 					panic("Invalid character in map")
 				}
 				room.Map[y][x] = t
+			}
+		}
+		// for _, x := range room.Terminals{
+		// 	for _, y := range room.Stations {
+		// 		x.LinkedStation = y
+		// 	}
+		// }
+		scanner.Scan()
+		testStr := scanner.Text()
+		if testStr != "STATIONS" {
+			panic("Missing data in room file" + testStr)
+		}
+
+		for scanner.Scan() { //Start STATION block
+			text := scanner.Text()
+			if text == "-------" {
+				break
+			} else {
+				//Start with POS
+				xy := text[1:]
+				splitXYCount := strings.Split(xy, ",")
+				x, err := strconv.ParseInt(strings.TrimSpace(splitXYCount[0]), 10, 64)
+				if err != nil {
+					panic(err)
+				}
+				y, err := strconv.ParseInt(strings.TrimSpace(splitXYCount[1]), 10, 64)
+				scanner.Scan()
+				name := scanner.Text() //Get name
+				scanner.Scan()
+				text = scanner.Text() //Get type
+				var typ StationType 
+				switch text {
+				case "REACTOR":
+					typ = Reactor
+				case "AUX_POWER":
+					typ = AuxPower
+				default:
+					panic("Invalid type " + text)
+				}
+				scanner.Scan()
+				text = scanner.Text() //Get powered status
+				var active bool
+				if text == "0"{
+					active = false
+				} else {
+					active = true
+				}
+
+				room.Stations[Pos{int(x),int(y)}] = &Station{Type: typ, Active: active, Name: name}
 
 			}
 		}
