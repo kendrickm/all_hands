@@ -20,6 +20,12 @@ type Button struct {
 	state bool
 }
 
+type TerminalType int
+const(
+	SINGLE_BUTTON TerminalType = iota
+	OUTPUT_GRAPH
+)
+
 type Terminal struct {
 	Powered bool
 	Buttons []*Button
@@ -33,13 +39,13 @@ func (button *Button) PressButton() {
 }
 
 
-func createReactorTerminal() *Terminal {
+func singleButtonTerminalFactory() *Terminal {
 	t := &Terminal{}
 	t.Powered = true
 	t.Buttons = make([]*Button, 1)
 	b := &Button{TriggerButton, false}
 	t.Buttons[0] = b
-	t.Name = "Reactor Terminal"
+	t.Name = ""
 
 	return t
 }

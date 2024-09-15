@@ -81,6 +81,7 @@ func checkTerminal(room *Room, playerPos Pos) *Terminal { //Since we aren't chan
 		terminal = room.Terminals[nPos]
 		fmt.Println("Found Terminal north")
 		fmt.Println(nPos)
+		fmt.Println(terminal)
 	} else if room.Map[sPos.Y][sPos.X].Rune == TerminalAccess {
 		terminal = room.Terminals[sPos]
 		fmt.Println("Found Terminal south")

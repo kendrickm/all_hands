@@ -87,7 +87,6 @@ func loadChapter0(player *Player) []*Ship {
 					t.Rune = ShipFloor
 				case 'T': 
 					 t.Rune = TerminalAccess
-					 room.Terminals[Pos{x,y}] = createReactorTerminal()
 			    case 'r':
 			    	 t.Rune = UnpoweredReactor
 			    	 // room.Stations[Pos{x,y}] = createReactorStation()
@@ -118,8 +117,8 @@ func loadChapter0(player *Player) []*Ship {
 				break
 			} else {
 				//Start with POS
-				xy := text[1:]
-				splitXYCount := strings.Split(xy, ",")
+				// xy := text[1:]
+				splitXYCount := strings.Split(text, ",")
 				x, err := strconv.ParseInt(strings.TrimSpace(splitXYCount[0]), 10, 64)
 				if err != nil {
 					panic(err)
@@ -132,8 +131,10 @@ func loadChapter0(player *Player) []*Ship {
 				var typ StationType 
 				switch text {
 				case "REACTOR":
+					fmt.Println("Creating reactor station")
 					typ = Reactor
 				case "AUX_POWER":
+					fmt.Println("Creating Aux power station")
 					typ = AuxPower
 				default:
 					panic("Invalid type " + text)
@@ -151,6 +152,61 @@ func loadChapter0(player *Player) []*Ship {
 
 			}
 		}
+
+		scanner.Scan()
+		testStr = scanner.Text()
+		if testStr != "TERMINALS" {
+			panic("Missing data in room file" + testStr)
+		}
+
+		for scanner.Scan() { //Start TERMINAL block
+			text := scanner.Text()
+			if text == "-------" {
+				break
+			} else {
+				//Start with POS
+				// fmt.Println(text)
+				// xy := text[1:]
+				splitXYCount := strings.Split(text, ",")
+				x, err := strconv.ParseInt(strings.TrimSpace(splitXYCount[0]), 10, 64)
+				if err != nil {
+					panic(err)
+				}
+				y, err := strconv.ParseInt(strings.TrimSpace(splitXYCount[1]), 10, 64)				
+				scanner.Scan()
+				text = scanner.Text() //Get type
+				var ter *Terminal
+				switch text {
+				case "SINGLE_BUTTON":
+					ter = singleButtonTerminalFactory()
+				default:
+					panic("Invalid type " + text)
+				}
+				scanner.Scan()
+				ter.Name = scanner.Text() //Get name
+				scanner.Scan()
+				text = scanner.Text() //Get status
+				if text == "0"{
+					ter.Powered = false
+				} else {
+					ter.Powered = false
+				}
+				scanner.Scan()
+				text = scanner.Text() //Get linked station name
+				for _, station := range room.Stations {
+					if station.Name == text {
+						ter.LinkedStation = station
+						break
+					}
+				}
+				pos := Pos{int(x),int(y)}
+				fmt.Println("Creating " + ter.Name + " at ")
+				fmt.Println(pos)
+				room.Terminals[Pos{int(x),int(y)}] = ter
+
+			}
+		}
+
 
 		for y, row := range room.Map {
 			for x, tile := range row {
