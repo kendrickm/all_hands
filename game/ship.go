@@ -164,9 +164,11 @@ func loadChapter0(player *Player) []*Ship {
 			if text == "-------" {
 				break
 			} else {
-				//Start with POS
-				// fmt.Println(text)
-				// xy := text[1:]
+				var ter *Terminal
+				name := scanner.Text() //Get name
+				fmt.Println(name)
+				scanner.Scan()
+				text = scanner.Text() //Get pos
 				splitXYCount := strings.Split(text, ",")
 				x, err := strconv.ParseInt(strings.TrimSpace(splitXYCount[0]), 10, 64)
 				if err != nil {
@@ -175,21 +177,33 @@ func loadChapter0(player *Player) []*Ship {
 				y, err := strconv.ParseInt(strings.TrimSpace(splitXYCount[1]), 10, 64)				
 				scanner.Scan()
 				text = scanner.Text() //Get type
-				var ter *Terminal
 				switch text {
 				case "SINGLE_BUTTON":
 					ter = singleButtonTerminalFactory()
 				default:
 					panic("Invalid type " + text)
 				}
+				ter.Name = name
 				scanner.Scan()
-				ter.Name = scanner.Text() //Get name
+				//TODO: Handle different number of possible buttons
+				text = scanner.Text() //Get button type 
+				switch text {
+				case "TRIGGER":
+					ter.Buttons[0]= &Button{TriggerButton, false,""}
+				case "TOGGLE":
+					ter.Buttons[0]= &Button{ToggleSwitch, false,""}
+				default:
+					panic("Invalid type " + text)
+				}
+				scanner.Scan()
+				text = scanner.Text() //Get button display text
+				ter.Buttons[0].DisplayText = text
 				scanner.Scan()
 				text = scanner.Text() //Get status
 				if text == "0"{
 					ter.Powered = false
 				} else {
-					ter.Powered = false
+					ter.Powered = true
 				}
 				scanner.Scan()
 				text = scanner.Text() //Get linked station name
@@ -199,6 +213,9 @@ func loadChapter0(player *Player) []*Ship {
 						break
 					}
 				}
+				scanner.Scan()
+				text = scanner.Text() //Get flavor text
+				ter.DisplayText = text
 				pos := Pos{int(x),int(y)}
 				fmt.Println("Creating " + ter.Name + " at ")
 				fmt.Println(pos)

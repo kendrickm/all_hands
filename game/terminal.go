@@ -1,7 +1,6 @@
 package game
 
 type ButtonAction int
-
 const (
 	UnusedButton ButtonAction = iota
 	ReactorOn
@@ -10,14 +9,20 @@ const (
 
 type ButtonType int 
 const (
-	ToggleSwitch ButtonType = iota
-	TriggerButton
-	ToggleButton
+	ToggleSwitch ButtonType = iota //Switch can do different functions in up or down
+	TriggerButton //Button that can be pressed only once
+	ToggleButton //Button that can be pressed multiple times
 )
 
 type Button struct {
 	Type ButtonType
 	state bool
+	DisplayText string
+}
+
+func (button *Button) PressButton() {
+	button.state = true
+	// fmt.Println("Pressed button")
 }
 
 type TerminalType int
@@ -31,21 +36,34 @@ type Terminal struct {
 	Buttons []*Button
 	Name string
 	LinkedStation *Station
+	DisplayText string
+	Type TerminalType
 }
 
-func (button *Button) PressButton() {
-	button.state = true
-	// fmt.Println("Pressed button")
+//TODO Will need to refactor this once multi button terminals are introduced
+type TerminalState struct {
+	Powered bool
+	ButtonState bool
+	ButtonActive bool
 }
 
+//TODO Will need to refactor this once multi button terminals are introduced
+func (t *Terminal) GetCurrentState() *TerminalState {
+	active := true
+	//Trigger buttons can only be pressed once so if its pressed then lock it
+	if t.Buttons[0].Type == TriggerButton && t.Buttons[0].state == true { 
+		active = false
+	}
+	return &TerminalState{t.Powered, t.Buttons[0].state, active}
+}
 
 func singleButtonTerminalFactory() *Terminal {
 	t := &Terminal{}
 	t.Powered = true
 	t.Buttons = make([]*Button, 1)
-	b := &Button{TriggerButton, false}
-	t.Buttons[0] = b
 	t.Name = ""
+	t.DisplayText = ""
+	t.Type = SINGLE_BUTTON
 
 	return t
 }

@@ -75,6 +75,7 @@ type ui struct {
 	terminalForeground  *sdl.Texture
 	buttonTexture 		*sdl.Texture
 	buttonTexturePressed 		*sdl.Texture
+	terminalTextboxTexture *sdl.Texture
 
 	currentMouseState *mouseState
 	prevMouseState *mouseState
@@ -125,6 +126,7 @@ func NewUI(inputChan chan *game.Input, currentRoom *game.Room, gameStateChan cha
 	ui.buttonTexture = ui.GetSinglePixelTex(sdl.Color{0, 255, 0, 255})
 	ui.buttonTexturePressed = ui.GetSinglePixelTex(sdl.Color{0, 155, 0, 255})
 	ui.buttonTexturePressed.SetBlendMode(sdl.BLENDMODE_BLEND)
+	ui.terminalTextboxTexture = ui.GetSinglePixelTex(sdl.Color{0, 255, 255, 255})
 
 	ui.fontSmall, err = ttf.OpenFont("ui/assets/gothic.ttf", int(float64(ui.winWidth)*.015))
 	if err != nil {
@@ -177,14 +179,14 @@ func (ui *ui) Run() {
 		select {
 		case  stateChange = <-ui.gameStateChan:
 			if stateChange.TerminalActive == true {
-				fmt.Println("stateChange")
+				fmt.Println("stateChange: " + stateChange.Terminal.Name)
 				ui.state = UITerminal
 				ui.currentTerminal = stateChange.Terminal
 			} else {
 				ui.state = UIMain
 			}
 	    default:
-	    	ui.DrawRoom(ui.currentRoom)
+	    	// ui.DrawRoom(ui.currentRoom)
 		}
 		
 		switch ui.state {
@@ -227,59 +229,7 @@ func (ui *ui) Run() {
 		sdl.Delay(10)
 }
 
-func (ui *ui) checkButton(buttonRect *sdl.Rect) bool {
-	mousePos := ui.currentMouseState.pos
-	return buttonRect.HasIntersection(&sdl.Rect{int32(mousePos.X), int32(mousePos.Y),int32(1),int32(1)})
-}
-
-func (ui *ui) DrawTerminal(terminal *game.Terminal) {
-	// fmt.Println("Drawing terminal " + terminal.Name)
-	// ui.renderer.Clear()
-
-	terminalRect := ui.getTerminalRect()
-	insetRect := getInsetRect(terminalRect)
-	buttonRect := getButtonRect(insetRect)
-	var buttonPressed bool
-	if ui.currentMouseState.leftButton && !ui.prevMouseState.leftButton{
-		buttonPressed = ui.checkButton(buttonRect)
-	}
-	buttonTexture := ui.buttonTexture
-	if buttonPressed {
-		terminal.Buttons[0].PressButton()
-		buttonTexture = ui.buttonTexturePressed
-	}
-	ui.renderer.Copy(ui.terminalBackground, nil, terminalRect)
-	ui.renderer.Copy(ui.terminalForeground, nil, insetRect)
-	ui.renderer.Copy(buttonTexture, nil, buttonRect)
-}
-
-func getInsetRect(outerTerminal *sdl.Rect) *sdl.Rect {
-	terWidth  := int32(float32(outerTerminal.W) * 0.91)
-	terHeight := int32(float32(outerTerminal.H) * 0.85)
-	offsetX := outerTerminal.X+int32(float32(outerTerminal.W)*0.05)
-	offsetY := outerTerminal.Y+int32(float32(outerTerminal.H)*0.05)
-	return &sdl.Rect{X:offsetX, Y: offsetY, W: terWidth, H: terHeight} 
-}
-
-
-func (ui *ui) getTerminalRect() *sdl.Rect {
-	terWidth  := int32(float32(ui.winWidth)*0.40)
-	terHeight := int32(float32(ui.winHeight)*0.75)
-	offsetX := (int32(ui.winWidth) - terWidth) / 2
-	offsetY := (int32(ui.winHeight) - terHeight) / 2
-	return &sdl.Rect{X:offsetX, Y: offsetY, W: terWidth, H: terHeight} 
-}
-
-func getButtonRect(insetTerminal *sdl.Rect) *sdl.Rect {
-	terWidth  := int32(float32(insetTerminal.W) * 0.1)
-	terHeight := int32(float32(insetTerminal.H) * 0.1)
-	offsetX := insetTerminal.X+int32(float32(insetTerminal.W)*0.5)
-	offsetY := insetTerminal.Y+int32(float32(insetTerminal.H)*0.5)
-	return &sdl.Rect{X:offsetX, Y: offsetY, W: terWidth, H: terHeight} 
-}
-
 func (ui *ui) DrawRoom(room *game.Room) {
-
 	if ui.centerX == -1 && ui.centerY == -1 {
 		ui.centerX = room.Player.X
 		ui.centerY = room.Player.Y

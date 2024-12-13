@@ -79,18 +79,14 @@ func checkTerminal(room *Room, playerPos Pos) *Terminal { //Since we aren't chan
 
 	if room.Map[nPos.Y][nPos.X].Rune == TerminalAccess {
 		terminal = room.Terminals[nPos]
-		fmt.Println("Found Terminal north")
 		fmt.Println(nPos)
 		fmt.Println(terminal)
 	} else if room.Map[sPos.Y][sPos.X].Rune == TerminalAccess {
 		terminal = room.Terminals[sPos]
-		fmt.Println("Found Terminal south")
 	} else if room.Map[ePos.Y][ePos.X].Rune == TerminalAccess {
 		terminal = room.Terminals[ePos]
-		fmt.Println("Found Terminal east")
 	} else if room.Map[wPos.Y][wPos.X].Rune == TerminalAccess {
 		terminal = room.Terminals[wPos]
-		fmt.Println("Found Terminal west")
 	}
 
 	return terminal
@@ -98,7 +94,6 @@ func checkTerminal(room *Room, playerPos Pos) *Terminal { //Since we aren't chan
 
 func (game *Game) Move(to Pos) {
 	game.CurrentRoom.Player.Pos = to
-	fmt.Println("Moving")
 }
 
 func (game *Game) resolveMovement(pos Pos) {
