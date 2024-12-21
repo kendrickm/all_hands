@@ -41,20 +41,20 @@ type Terminal struct {
 }
 
 //TODO Will need to refactor this once multi button terminals are introduced
-type TerminalState struct {
+type TerminalStatus struct {
 	Powered bool
 	ButtonState bool
 	ButtonActive bool
 }
 
 //TODO Will need to refactor this once multi button terminals are introduced
-func (t *Terminal) GetCurrentState() *TerminalState {
+func (t *Terminal) GetCurrentState() *TerminalStatus {
 	active := true
 	//Trigger buttons can only be pressed once so if its pressed then lock it
 	if t.Buttons[0].Type == TriggerButton && t.Buttons[0].state == true { 
 		active = false
 	}
-	return &TerminalState{t.Powered, t.Buttons[0].state, active}
+	return &TerminalStatus{t.Powered, t.Buttons[0].state, active}
 }
 
 func singleButtonTerminalFactory() *Terminal {

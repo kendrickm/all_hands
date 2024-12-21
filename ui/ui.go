@@ -189,44 +189,27 @@ func (ui *ui) Run() {
 	    	// ui.DrawRoom(ui.currentRoom)
 		}
 		
+		var input *game.Input
+
 		switch ui.state {
 		case UIMain:
 			ui.DrawRoom(ui.currentRoom)
+			input = ui.handleRoomInput()
 		case UITerminal:
 			ui.DrawTerminal(ui.currentTerminal)
+			input = ui.handleTerminalInput()
 		}
-		
-		var input game.Input
 
 		ui.renderer.Present()
 
-		if sdl.GetKeyboardFocus() == ui.window || sdl.GetMouseFocus() == ui.window {
-			
-			if ui.keyDownOnce(sdl.SCANCODE_UP) {
-				input.Typ = game.Up
-			} else if ui.keyDownOnce(sdl.SCANCODE_DOWN) {
-				input.Typ = game.Down
-			} else if ui.keyDownOnce(sdl.SCANCODE_RIGHT) {
-				input.Typ = game.Right
-			} else if ui.keyDownOnce(sdl.SCANCODE_LEFT) {
-				input.Typ = game.Left
-			} else if ui.keyDownOnce(sdl.SCANCODE_T) {
-				input.Typ = game.TerminalInteract
-			}
+		if input.Typ != game.None {
+			ui.inputChan <- input			
 		}
-
-			for i, v := range ui.keyboardState {
-				ui.preKeyboardState[i] = v
-			}
-
-			if input.Typ != game.None {
-				ui.inputChan <- &input
-				
-			}
-		}
+		
 
 		ui.prevMouseState = ui.currentMouseState
 		sdl.Delay(10)
+	}
 }
 
 func (ui *ui) DrawRoom(room *game.Room) {

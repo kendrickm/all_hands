@@ -33,3 +33,38 @@ func (ui *ui) keyDownOnce(key uint8) bool {
 func (ui *ui) keyPressed(key uint8) bool {
 	return ui.keyboardState[key] == 0 && ui.preKeyboardState[key] == 1
 }
+
+
+func (ui *ui) handleRoomInput() *game.Input {
+	var input game.Input
+	if sdl.GetKeyboardFocus() == ui.window || sdl.GetMouseFocus() == ui.window {	
+		if ui.keyDownOnce(sdl.SCANCODE_UP) {
+			input.Typ = game.Up
+		} else if ui.keyDownOnce(sdl.SCANCODE_DOWN) {
+			input.Typ = game.Down
+		} else if ui.keyDownOnce(sdl.SCANCODE_RIGHT) {
+			input.Typ = game.Right
+		} else if ui.keyDownOnce(sdl.SCANCODE_LEFT) {
+			input.Typ = game.Left
+		} else if ui.keyDownOnce(sdl.SCANCODE_T) {
+			input.Typ = game.TerminalInteract
+		}
+	}
+	for i, v := range ui.keyboardState {
+		ui.preKeyboardState[i] = v
+	}
+	return &input
+}
+
+func (ui *ui) handleTerminalInput() *game.Input {
+	var input game.Input
+	if sdl.GetKeyboardFocus() == ui.window || sdl.GetMouseFocus() == ui.window {	
+		if ui.keyDownOnce(sdl.SCANCODE_T) {
+			input.Typ = game.TerminalInteract
+		}
+	}
+	for i, v := range ui.keyboardState {
+		ui.preKeyboardState[i] = v
+	}
+	return &input
+}

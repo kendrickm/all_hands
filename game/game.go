@@ -56,6 +56,7 @@ const (
 
 type Input struct {
 	Typ InputType
+	handled bool
 }
 
 type Pos struct {
@@ -123,6 +124,17 @@ func inRange(room *Room, pos Pos) bool {
 	return pos.X < len(room.Map[0]) && pos.Y < len(room.Map) && pos.X >= 0 && pos.Y >= 0
 }
 
+func (game *Game) stateChange(newState State) {
+	switch newState.(type) {
+	case *TerminalState:
+		state := &StateChange{true, game.ActiveTerminal}
+		game.GameStateChan <- state
+	default:
+		state := &StateChange{false, nil}
+		game.GameStateChan <- state
+	}
+}
+
 func (game *Game) handleInput(input *Input) {
 	room := game.CurrentRoom
 	p := room.Player
@@ -141,7 +153,7 @@ func (game *Game) handleInput(input *Input) {
 		game.resolveMovement(newPos)
 	case CloseWindow:
 		//Handle closing terminals here
-	case TerminalInteract:
+	case TerminalInteract: //Some logic duplicated with the terminal state
 		if game.ActiveTerminal == nil {
 			t := checkTerminal(room, p.Pos)
 			if t != nil{
@@ -153,6 +165,7 @@ func (game *Game) handleInput(input *Input) {
 			fmt.Println("Unsetting terminal")
 		}
 	}
+	input.handled = true
 }
 
 func getNeighbors(room *Room, pos Pos) []Pos {
@@ -178,26 +191,25 @@ func getNeighbors(room *Room, pos Pos) []Pos {
 	return neighbors
 }
 
-func (game *Game) Run() {
-	// for _, r := range game.RoomChans {
-	// 	r <- game.CurrentRoom
-	// }
+func (game *Game) pollInput() *Input {
+	var input *Input
+	select {
+	case  input = <-game.InputChan:
+    default:
+    	input = &Input{None, false}
+	}
+	return input
+}
 
-	for input := range game.InputChan {
-		if input.Typ == QuitGame {
-			fmt.Println("Quitting")
+func (game *Game) Run(sm *StateMachine) {
+
+	for {
+		input := game.pollInput()
+		sm.Update(input)
+		_, ok := sm.currentState.(*GameOver)
+		if ok {
 			return
 		}
-		game.handleInput(input)
-		state := &StateChange{}
-		if game.ActiveTerminal != nil {
-			state.TerminalActive = true
-			state.Terminal = game.ActiveTerminal
-		}
-		game.GameStateChan <- state
-		game.CurrentRoom.Update()
 	}
-
-	
 
 }
