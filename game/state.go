@@ -23,7 +23,7 @@ func (g *GameStart) Update(sm *StateMachine, input *Input){
 
 type MainGame struct{
 	game *Game
-	events []*Events
+	// events []*Events
 }
 func (g *MainGame) Enter(){
 	fmt.Println("Here we go!")

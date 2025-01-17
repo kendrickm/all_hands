@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/kendrickm/all_hands/game"
 	"github.com/kendrickm/all_hands/ui"
+	"time"
 )
 
 func main() {
@@ -10,9 +11,14 @@ func main() {
 	// and run only on main thread
 	g := game.NewGame()
 	sm := game.NewStateMachine(g)
-	go func() {
-		g.Run(sm)
+	ticker := time.NewTicker(16 * time.Millisecond)
 
+	go func() {
+		// for t := range ticker.C {
+		// 	fmt.Println("Tick at", t)
+        //     g.Run(sm,ticker)
+        // }
+        g.Run(sm,ticker)
 	}()
 	ui := ui.NewUI(g.InputChan, g.CurrentRoom, g.GameStateChan)
 	ui.Run()

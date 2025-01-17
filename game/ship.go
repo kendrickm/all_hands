@@ -148,7 +148,7 @@ func loadChapter0(player *Player) []*Ship {
 					active = true
 				}
 
-				room.Stations[Pos{int(x),int(y)}] = &Station{Type: typ, Active: active, Name: name}
+				room.Stations[Pos{int(x),int(y)}] = &Station{Type: typ, Active: active, Name: name, Level: 0, MinLevel:0, MaxLevel:100, changeRate:0.08, tmp: 0.0}
 
 			}
 		}

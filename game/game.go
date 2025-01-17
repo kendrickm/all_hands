@@ -8,6 +8,7 @@ package game
 
 import (
 	"fmt"
+	"time"
 )
 
 type Game struct {
@@ -201,15 +202,26 @@ func (game *Game) pollInput() *Input {
 	return input
 }
 
-func (game *Game) Run(sm *StateMachine) {
+func (game *Game) Run(sm *StateMachine, ticker *time.Ticker) {
 
-	for {
-		input := game.pollInput()
+	// for {
+	// 	input := game.pollInput()
+	// 	sm.Update(input)
+	// 	_, ok := sm.currentState.(*GameOver)
+	// 	if ok {
+	// 		return
+	// 	}
+	// }
+
+	for t := range ticker.C {
+		fmt.Println("Tick at", t)
+        input := game.pollInput()
 		sm.Update(input)
 		_, ok := sm.currentState.(*GameOver)
 		if ok {
 			return
 		}
-	}
+    }
+
 
 }
