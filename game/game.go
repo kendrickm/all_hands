@@ -1,6 +1,6 @@
 //TODO 
-//Event management
 //Ship status
+//Convert terminals to interfaces
 //** Reactor status
 //** Aux Power Banks
 
@@ -113,7 +113,7 @@ func canWalk(room *Room, pos Pos) bool {
 	if inRange(room, pos) {
 		t := room.Map[pos.Y][pos.X]
 		switch t.Rune {
-		case TerminalAccess,PoweredReactor,UnpoweredReactor,Bulkhead, Blank:
+		case TerminalAccess,PoweredReactor,UnpoweredReactor,Bulkhead,Blank,GraphDisplay:
 			return false
 		}
 		return true
@@ -213,8 +213,7 @@ func (game *Game) Run(sm *StateMachine, ticker *time.Ticker) {
 	// 	}
 	// }
 
-	for t := range ticker.C {
-		fmt.Println("Tick at", t)
+	for _ = range ticker.C {
         input := game.pollInput()
 		sm.Update(input)
 		_, ok := sm.currentState.(*GameOver)

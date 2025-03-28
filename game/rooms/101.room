@@ -1,5 +1,5 @@
 ############################
-#............T.............#
+#............TT............#
 #..........................#
 #..........................#
 #..........................#
@@ -26,5 +26,12 @@ Reactor Ignition
 1
 SHIP_REACTOR
 Main Reactor
+REACTOR POWER LEVELS
+14,1
+GRAPH_DISPLAY
+0
+1
+SHIP_REACTOR
+Reactor Power Levels
 -------
 

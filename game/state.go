@@ -60,6 +60,7 @@ func (g *TerminalState) Update(sm *StateMachine, input *Input){
 	if input.Typ == TerminalInteract {
 		g.game.ActiveTerminal = nil
 	}
+	g.game.CurrentRoom.Update()
 }
 
 

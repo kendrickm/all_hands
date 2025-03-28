@@ -87,6 +87,8 @@ func loadChapter0(player *Player) []*Ship {
 					t.Rune = ShipFloor
 				case 'T': 
 					 t.Rune = TerminalAccess
+				case 'G':
+					  t.Rune = GraphDisplay
 			    case 'r':
 			    	 t.Rune = UnpoweredReactor
 			    	 // room.Stations[Pos{x,y}] = createReactorStation()
@@ -180,6 +182,8 @@ func loadChapter0(player *Player) []*Ship {
 				switch text {
 				case "SINGLE_BUTTON":
 					ter = singleButtonTerminalFactory()
+				case "GRAPH_DISPLAY":
+					ter = graphDisplayTerminalFactor()
 				default:
 					panic("Invalid type " + text)
 				}
@@ -187,17 +191,22 @@ func loadChapter0(player *Player) []*Ship {
 				scanner.Scan()
 				//TODO: Handle different number of possible buttons
 				text = scanner.Text() //Get button type 
+				fmt.Println(text)
 				switch text {
 				case "TRIGGER":
 					ter.Buttons[0]= &Button{TriggerButton, false,""}
 				case "TOGGLE":
 					ter.Buttons[0]= &Button{ToggleSwitch, false,""}
+				case "0":
 				default:
 					panic("Invalid type " + text)
 				}
-				scanner.Scan()
-				text = scanner.Text() //Get button display text
-				ter.Buttons[0].DisplayText = text
+				for x := range ter.Buttons{
+					scanner.Scan()
+					text = scanner.Text() //Get button display text
+					ter.Buttons[x].DisplayText = text
+				}
+
 				scanner.Scan()
 				text = scanner.Text() //Get status
 				if text == "0"{

@@ -1,8 +1,4 @@
 package game
-import (
-	"fmt"
-	"strconv"
-)
 
 type Room struct {
 	Map    [][]Tile
@@ -45,6 +41,7 @@ const (
 	TerminalAccess   rune = 'T'
 	UnpoweredReactor rune = 'r'
 	PoweredReactor   rune = 'R'
+	GraphDisplay rune = 'G'
 	Blank      rune = 0
 	Pending    rune = -1
 )
@@ -56,12 +53,16 @@ func createReactorStation() *Station {
 
 func (room *Room) Update() {
 	for _, ter := range room.Terminals{
-		if ter.Buttons[0].state {
+		if ter.Type == GRAPH_DISPLAY{
+			// skip for now
+		} else {
+			if ter.Buttons[0].state {
 			ter.LinkedStation.Active = true
+		}
 		}
 	}
 	for pos, station := range room.Stations {
-		fmt.Println(station.Name + ": " + strconv.Itoa(int(station.Level)))
+		// fmt.Println(station.Name + ": " + strconv.Itoa(int(station.Level)))
 		if station.Active{
 			if station.Level < station.MaxLevel {
 				// fmt.Println("Updating levels")
@@ -75,9 +76,12 @@ func (room *Room) Update() {
 					station.tmp = 0.0
 				}
 			}
-			if room.Map[pos.Y][pos.X].Rune == UnpoweredReactor {
+			if station.Level == station.MaxLevel {
+				if room.Map[pos.Y][pos.X].Rune == UnpoweredReactor {
 				room.Map[pos.Y][pos.X].Rune = PoweredReactor
+				}
 			}
+			
 		}
 	}
 }
