@@ -79,6 +79,7 @@ type ui struct {
 
 	currentMouseState *mouseState
 	prevMouseState *mouseState
+
 }
 
 func NewUI(inputChan chan *game.Input, currentRoom *game.Room, gameStateChan chan *game.StateChange) *ui {

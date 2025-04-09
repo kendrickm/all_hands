@@ -4,6 +4,7 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/kendrickm/all_hands/game"
 	"fmt"
+	"strconv"
 )
 
 func (ui *ui) DrawTerminal(terminal *game.Terminal) {
@@ -30,13 +31,35 @@ func (ui *ui) DrawGDTerminal(terminal *game.Terminal) { // Drawing a terminal th
 	insetRect := getInsetRect(terminalRect)
 	displayTextRect := getDisplayTextRect(insetRect)
 	outputTextRect := getOutputTextRect(insetRect)
+	graphBackgroundRect := getGraphRect(insetRect)
 	nameTexture := ui.stringToTexture(terminal.DisplayText, FontSmall, sdl.Color{255, 255, 255, 255})
 	outputTextTexture := ui.stringToTexture(tState.Info, FontSmall, sdl.Color{255,255,255,255})
+
 	ui.renderer.Copy(ui.terminalBackground, nil, terminalRect)
 	ui.renderer.Copy(ui.terminalForeground, nil, insetRect)
 	ui.renderer.Copy(ui.terminalTextboxTexture, nil, displayTextRect)
+	ui.renderer.Copy(ui.terminalBackground, nil, graphBackgroundRect)
 	ui.renderer.Copy(nameTexture, nil, displayTextRect)
 	ui.renderer.Copy(outputTextTexture, nil, outputTextRect)
+
+	i, err := strconv.Atoi(tState.Info)
+    if err != nil {
+        panic(err)
+    }
+
+    rate := float32(i)/100 //Convert to percentage
+	lineStartX := int32(float32(graphBackgroundRect.X)*1.02)
+	lineStartY := int32(float32(graphBackgroundRect.Y + graphBackgroundRect.H)*0.98)
+	lineEndX := int32(float32(lineStartX + graphBackgroundRect.W)*0.98)
+	//lineMaxY := int32(float32(graphBackgroundRect.Y)*1.05)
+	lineEndY := int32(float32(lineStartY) - (float32(graphBackgroundRect.H)*rate) * 0.95)
+
+
+
+	ui.renderer.SetDrawColor(255,255,255,255)
+	ui.renderer.DrawLine(lineStartX, lineStartY, lineEndX, lineEndY)
+
+	ui.renderer.SetDrawColor(0,0,0,255)
 }
 
 func (ui *ui) DrawSBTerminal(terminal *game.Terminal) { // For drawing a simple, single button terminal
@@ -74,6 +97,14 @@ func getInsetRect(outerTerminal *sdl.Rect) *sdl.Rect {
 	offsetX := outerTerminal.X+((outerTerminal.W - terWidth)/2)
 	offsetY := outerTerminal.Y+((outerTerminal.H - terHeight)/2)
 	return &sdl.Rect{X:offsetX, Y: offsetY, W: terWidth, H: terHeight} 
+}
+
+func getGraphRect(insetRect *sdl.Rect) *sdl.Rect {
+	terWidth  := int32(float32(insetRect.W) * 0.91)
+	terHeight := int32(float32(insetRect.H) * 0.45)
+	offsetX := insetRect.X+((insetRect.W - terWidth)/2)
+	offsetY := insetRect.Y+int32(float32(terHeight)*0.05)
+	return &sdl.Rect{X:offsetX, Y: offsetY, W: terWidth, H: terHeight}
 }
 
 
