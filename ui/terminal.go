@@ -7,12 +7,61 @@ import (
 	"strconv"
 )
 
-func (ui *ui) DrawTerminal(terminal *game.Terminal) {
+type TerminalData interface {
+	Create (*ui)
+	Update(sdl.Point)
+	Data() []sdl.Point
+}
+
+type GDData struct {
+	points []sdl.Point
+	maxSize int32
+	currentIndex int32
+}
+
+func (g *GDData) Create(ui *ui) {
+	terminalRect := ui.getTerminalRect()
+	insetRect := getInsetRect(terminalRect)
+	graphBackgroundRect := getGraphRect(insetRect)
+	g.maxSize = int32(float32(graphBackgroundRect.W)*0.96)
+	g.points = make([]sdl.Point,g.maxSize)
+	
+	g.currentIndex = 0
+}
+
+func (g *GDData) Update (p sdl.Point) {
+	if (g.currentIndex >= g.maxSize) { // Once we reach the end we need to then start shifting
+		g.points = *rotate(&g.points)
+		g.points[g.currentIndex - 1] = p //We want to just replace the last item
+
+	} else { // We're building out the first line
+		fmt.Println("Adding new point")
+		g.points[g.currentIndex] = p
+		g.currentIndex++
+	}
+} 
+
+func rotate (starting *[]sdl.Point) *[]sdl.Point {
+	ending := make([]sdl.Point,len(*starting))
+	for x := 1; x != 342; x++ {
+		oldP := (*starting)[x]
+		p := sdl.Point{oldP.X - 1, oldP.Y}
+		ending[x-1] = p
+	}
+	return &ending
+}
+
+func (g *GDData) Data() []sdl.Point {
+	return g.points
+}
+
+
+func (ui *ui) DrawTerminal(terminal *game.Terminal, terminalData TerminalData) {
 	switch terminal.Type {
 	case game.SINGLE_BUTTON:
 		ui.DrawSBTerminal(terminal)
 	case game.GRAPH_DISPLAY:
-		ui.DrawGDTerminal(terminal)
+		ui.DrawGDTerminal(terminal, terminalData.(*GDData))
 	default:
 		fmt.Println("Unknown Type")
 		panic(terminal.Type)
@@ -24,7 +73,7 @@ func (ui *ui) checkButton(buttonRect *sdl.Rect) bool {
 	return buttonRect.HasIntersection(&sdl.Rect{int32(mousePos.X), int32(mousePos.Y),int32(1),int32(1)})
 }
 
-func (ui *ui) DrawGDTerminal(terminal *game.Terminal) { // Drawing a terminal that outputs just a graph
+func (ui *ui) DrawGDTerminal(terminal *game.Terminal, terminalData *GDData) { // Drawing a terminal that outputs just a graph
 	ui.renderer.Clear()
 	tState := terminal.GetCurrentState()
 	terminalRect := ui.getTerminalRect()
@@ -50,20 +99,21 @@ func (ui *ui) DrawGDTerminal(terminal *game.Terminal) { // Drawing a terminal th
     rate := float32(i)/100 //Convert to percentage
 	lineStartX := int32(float32(graphBackgroundRect.X)*1.02)
 	lineStartY := int32(float32(graphBackgroundRect.Y + graphBackgroundRect.H)*0.98)
-	lineEndX := int32(float32(lineStartX + graphBackgroundRect.W)*0.98)
+	// lineEndX := int32(float32(lineStartX + graphBackgroundRect.W)*0.98)
 	//lineMaxY := int32(float32(graphBackgroundRect.Y)*1.05)
 	lineEndY := int32(float32(lineStartY) - (float32(graphBackgroundRect.H)*rate) * 0.95)
+	xCoord := lineStartX + terminalData.currentIndex
+	p := sdl.Point{xCoord, lineEndY}
 
-
+	terminalData.Update(p)
 
 	ui.renderer.SetDrawColor(255,255,255,255)
-	ui.renderer.DrawLine(lineStartX, lineStartY, lineEndX, lineEndY)
+	ui.renderer.DrawPoints(terminalData.Data())
 
 	ui.renderer.SetDrawColor(0,0,0,255)
 }
 
 func (ui *ui) DrawSBTerminal(terminal *game.Terminal) { // For drawing a simple, single button terminal
-	// fmt.Println("Drawing terminal " + terminal.Name)
 	ui.renderer.Clear()
 	tState := terminal.GetCurrentState()
 	terminalRect := ui.getTerminalRect()

@@ -7,6 +7,7 @@ package ui
 import (
 	"fmt"
 	"math/rand"
+	"time"
 	"github.com/veandco/go-sdl2/ttf"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/mix"
@@ -80,6 +81,8 @@ type ui struct {
 	currentMouseState *mouseState
 	prevMouseState *mouseState
 
+	terminalData TerminalData
+
 }
 
 func NewUI(inputChan chan *game.Input, currentRoom *game.Room, gameStateChan chan *game.StateChange) *ui {
@@ -149,14 +152,17 @@ func NewUI(inputChan chan *game.Input, currentRoom *game.Room, gameStateChan cha
 		panic(err)
 	}
 
+	ui.terminalData = nil
+
 	return ui
 }
 
 func (ui *ui) Run() {
 
 	ui.prevMouseState = getMouseState()
+	ticker := time.NewTicker(16 * time.Millisecond)
 
-	for {
+	for _ = range ticker.C {
 
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
 
@@ -181,6 +187,12 @@ func (ui *ui) Run() {
 		case  stateChange = <-ui.gameStateChan:
 			if stateChange.TerminalActive == true {
 				fmt.Println("stateChange: " + stateChange.Terminal.Name)
+				if (stateChange.Terminal.Name == "REACTOR POWER LEVELS") {
+					data := &GDData{}
+					data.Create(ui)
+					ui.terminalData = data
+					fmt.Println("Created new data")
+				}
 				ui.state = UITerminal
 				ui.currentTerminal = stateChange.Terminal
 			} else {
@@ -197,7 +209,7 @@ func (ui *ui) Run() {
 			ui.DrawRoom(ui.currentRoom)
 			input = ui.handleRoomInput()
 		case UITerminal:
-			ui.DrawTerminal(ui.currentTerminal)
+			ui.DrawTerminal(ui.currentTerminal, ui.terminalData)
 			input = ui.handleTerminalInput()
 		}
 
