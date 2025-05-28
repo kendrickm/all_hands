@@ -34,13 +34,21 @@ type Station struct {
 }
 
 const (
-	Bulkhead   rune = '#'
+	ULCornerBulkhead   rune = 'L'
+	LLCornerBulkhead   rune = 'l'
+	URCornerBulkhead   rune = 'R'
+	LRCornerBulkhead   rune = 'r'
+	LeftBulkhead   rune = 'g'
+	RightBulkhead   rune = 'h'
+	CenterTBulkhead   rune = 'C'
+	CenterBBulkhead   rune = 'c'
+	FillerBulkhead rune = '#'
 	ShipFloor  rune = '.'
 	ClosedDoor       rune = '|'
 	OpenDoor         rune = '/'
 	TerminalAccess   rune = 'T'
-	UnpoweredReactor rune = 'r'
-	PoweredReactor   rune = 'R'
+	UnpoweredReactor rune = 'p'
+	PoweredReactor   rune = 'P'
 	GraphDisplay rune = 'G'
 	Blank      rune = 0
 	Pending    rune = -1

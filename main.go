@@ -16,9 +16,9 @@ func main() {
 	go func() {
 		// for t := range ticker.C {
 		// 	fmt.Println("Tick at", t)
-        //     g.Run(sm,ticker)
-        // }
-        g.Run(sm,ticker)
+		//     g.Run(sm,ticker)
+		// }
+		g.Run(sm, ticker)
 	}()
 	ui := ui.NewUI(g.InputChan, g.CurrentRoom, g.GameStateChan)
 	ui.Run()

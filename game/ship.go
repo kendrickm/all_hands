@@ -81,15 +81,31 @@ func loadChapter0(player *Player) []*Ship {
 				switch c {
 				case ' ', '\n', '\t', '\r':
 					t.Rune = Blank
+				case 'L':
+					t.Rune = ULCornerBulkhead
+				case 'l':
+					t.Rune = LLCornerBulkhead
+				case 'R':
+					t.Rune = URCornerBulkhead
+				case 'r':
+					t.Rune = LRCornerBulkhead
+				case 'g':
+					t.Rune = LeftBulkhead
+				case 'h':
+					t.Rune = RightBulkhead
+				case 'C':
+					t.Rune = CenterTBulkhead
+				case 'c':
+					t.Rune = CenterBBulkhead
 				case '#':
-					t.Rune = Bulkhead
+					t.Rune = FillerBulkhead
 				case '.':
 					t.Rune = ShipFloor
 				case 'T': 
 					 t.Rune = TerminalAccess
 				case 'G':
 					  t.Rune = GraphDisplay
-			    case 'r':
+			    case 'p':
 			    	 t.Rune = UnpoweredReactor
 			    	 // room.Stations[Pos{x,y}] = createReactorStation()
 				case '@':

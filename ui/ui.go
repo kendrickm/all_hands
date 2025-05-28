@@ -111,7 +111,7 @@ func NewUI(inputChan chan *game.Input, currentRoom *game.Room, gameStateChan cha
 	}
 	//sdl.SetHint(sdl.HINT_RENDER_SCALE_QUALITY, "1")
 
-	ui.textureAtlas = ui.imgFileToTexture("ui/assets/tiles.png")
+	ui.textureAtlas = ui.imgFileToTexture("ui/assets/tilesv2.png")
 	ui.loadTextureIndex()
 
 	ui.keyboardState = sdl.GetKeyboardState()

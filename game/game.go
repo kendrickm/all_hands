@@ -113,7 +113,9 @@ func canWalk(room *Room, pos Pos) bool {
 	if inRange(room, pos) {
 		t := room.Map[pos.Y][pos.X]
 		switch t.Rune {
-		case TerminalAccess,PoweredReactor,UnpoweredReactor,Bulkhead,Blank,GraphDisplay:
+		case TerminalAccess,PoweredReactor,UnpoweredReactor,FillerBulkhead,Blank,GraphDisplay,
+			ULCornerBulkhead,LLCornerBulkhead,URCornerBulkhead,LRCornerBulkhead,LeftBulkhead,
+			RightBulkhead,CenterTBulkhead,CenterBBulkhead:
 			return false
 		}
 		return true
