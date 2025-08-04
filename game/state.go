@@ -10,6 +10,51 @@ type State interface {
 	Update(sm *StateMachine, input *Input)
 }
 
+type StartMenu struct {
+	game *Game
+}
+
+func (g *StartMenu) Enter(){
+	fmt.Println("La carte")
+}
+func (g *StartMenu) Exit(){}
+func (g *StartMenu) Update(sm *StateMachine, input *Input){
+	if input == nil { // No input
+		return	
+	}
+	if input.Typ == StartNewGame {
+		sm.setState(&GameStart{})
+		return
+	}
+	if input.Typ == QuitGame {
+		sm.setState(&GameOver{})
+		return
+	}
+}
+
+type PauseMenu struct {
+	game *Game
+}
+
+func (g *PauseMenu) Enter(){
+	fmt.Println("La carte en pause")
+	g.game.stateChange(g)
+}
+func (g *PauseMenu) Exit(){}
+func (g *PauseMenu) Update(sm *StateMachine, input *Input){
+	if input == nil { // No input
+		return	
+	}
+	if input.Typ == QuitGame {
+		sm.setState(&GameOver{})
+		return
+	}
+	if input.Typ == CloseMenu {
+		sm.setState(&MainGame{g.game})
+	}
+
+}
+
 type GameStart struct{
 	game *Game
 }
@@ -39,6 +84,10 @@ func (g *MainGame) Update(sm *StateMachine, input *Input){
 		sm.setState(&GameOver{})
 		return
 	}
+	if input.Typ == OpenPauseMenu {
+		sm.setState(&PauseMenu{g.game})
+		return
+	}
 	g.game.handleInput(input)
 	g.game.CurrentRoom.Update()
 	if g.game.ActiveTerminal != nil {
@@ -56,6 +105,10 @@ func (g *TerminalState) Exit(){}
 func (g *TerminalState) Update(sm *StateMachine, input *Input){
 	if g.game.ActiveTerminal == nil{
 		sm.setState(&MainGame{g.game})
+	}
+	if input.Typ == OpenPauseMenu {
+		sm.setState(&PauseMenu{g.game})
+		return
 	}
 	if input.Typ == TerminalInteract {
 		g.game.ActiveTerminal = nil

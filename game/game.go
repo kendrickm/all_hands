@@ -40,6 +40,7 @@ func NewGame() *Game {
 type StateChange struct {
 	TerminalActive bool
 	Terminal *Terminal
+	PauseMenuActive bool
 }
 
 type InputType int
@@ -53,6 +54,9 @@ const (
 	TerminalInteract
 	QuitGame
 	CloseWindow
+	StartNewGame
+	OpenPauseMenu
+	CloseMenu
 )
 
 type Input struct {
@@ -130,10 +134,13 @@ func inRange(room *Room, pos Pos) bool {
 func (game *Game) stateChange(newState State) {
 	switch newState.(type) {
 	case *TerminalState:
-		state := &StateChange{true, game.ActiveTerminal}
+		state := &StateChange{true, game.ActiveTerminal,false}
+		game.GameStateChan <- state
+	case *PauseMenu:
+		state := &StateChange{false,nil,true}
 		game.GameStateChan <- state
 	default:
-		state := &StateChange{false, nil}
+		state := &StateChange{false, nil, false}
 		game.GameStateChan <- state
 	}
 }
@@ -167,6 +174,7 @@ func (game *Game) handleInput(input *Input) {
 			game.ActiveTerminal = nil
 			fmt.Println("Unsetting terminal")
 		}
+
 	}
 	input.handled = true
 }

@@ -39,6 +39,7 @@ type uiState int
 const (
 	UIMain uiState = iota
 	UITerminal
+	PauseMenu
 )
 
 
@@ -75,7 +76,8 @@ type ui struct {
 	terminalBackground  *sdl.Texture
 	terminalForeground  *sdl.Texture
 	buttonTexture 		*sdl.Texture
-	buttonTexturePressed 		*sdl.Texture
+	menuBackground      *sdl.Texture
+	buttonTexturePressed   *sdl.Texture
 	terminalTextboxTexture *sdl.Texture
 
 	currentMouseState *mouseState
@@ -131,6 +133,7 @@ func NewUI(inputChan chan *game.Input, currentRoom *game.Room, gameStateChan cha
 	ui.buttonTexturePressed = ui.GetSinglePixelTex(sdl.Color{0, 155, 0, 255})
 	ui.buttonTexturePressed.SetBlendMode(sdl.BLENDMODE_BLEND)
 	ui.terminalTextboxTexture = ui.GetSinglePixelTex(sdl.Color{0, 255, 255, 255})
+	ui.menuBackground = ui.GetSinglePixelTex(sdl.Color{49, 163, 183, 255})
 
 	ui.fontSmall, err = ttf.OpenFont("ui/assets/gothic.ttf", int(float64(ui.winWidth)*.015))
 	if err != nil {
@@ -195,6 +198,9 @@ func (ui *ui) Run() {
 				}
 				ui.state = UITerminal
 				ui.currentTerminal = stateChange.Terminal
+			} else if stateChange.PauseMenuActive == true {
+				fmt.Println("stateChange: PauseMenu")
+				ui.state = PauseMenu
 			} else {
 				ui.state = UIMain
 			}
@@ -211,6 +217,10 @@ func (ui *ui) Run() {
 		case UITerminal:
 			ui.DrawTerminal(ui.currentTerminal, ui.terminalData)
 			input = ui.handleTerminalInput()
+		case PauseMenu:
+			ui.DrawRoom(ui.currentRoom)
+			ui.DrawMenu()
+			input = ui.handlePauseMenuInput()
 		}
 
 		ui.renderer.Present()

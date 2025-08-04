@@ -48,6 +48,8 @@ func (ui *ui) handleRoomInput() *game.Input {
 			input.Typ = game.Left
 		} else if ui.keyDownOnce(sdl.SCANCODE_T) {
 			input.Typ = game.TerminalInteract
+		} else if ui.keyDownOnce(sdl.SCANCODE_ESCAPE) {
+			input.Typ = game.OpenPauseMenu
 		}
 	}
 	for i, v := range ui.keyboardState {
@@ -61,6 +63,23 @@ func (ui *ui) handleTerminalInput() *game.Input {
 	if sdl.GetKeyboardFocus() == ui.window || sdl.GetMouseFocus() == ui.window {	
 		if ui.keyDownOnce(sdl.SCANCODE_T) {
 			input.Typ = game.TerminalInteract
+		} else if ui.keyDownOnce(sdl.SCANCODE_ESCAPE) {
+			input.Typ = game.OpenPauseMenu
+		}
+
+	}
+	for i, v := range ui.keyboardState {
+		ui.preKeyboardState[i] = v
+	}
+	return &input
+}
+
+
+func (ui *ui) handlePauseMenuInput() *game.Input {
+	var input game.Input
+	if sdl.GetKeyboardFocus() == ui.window || sdl.GetMouseFocus() == ui.window {	
+        if ui.keyDownOnce(sdl.SCANCODE_ESCAPE) {
+			input.Typ = game.CloseMenu
 		}
 	}
 	for i, v := range ui.keyboardState {
